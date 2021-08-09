@@ -7,17 +7,27 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import com.example.youtube.R;
 import com.example.youtube.adapter.AdapterVideo;
+import com.example.youtube.api.YoutubeService;
+import com.example.youtube.helper.RetrofitConfig;
+import com.example.youtube.helper.YoutubeConfig;
+import com.example.youtube.model.Resultado;
 import com.example.youtube.model.Video;
 import com.miguelcatalan.materialsearchview.MaterialSearchView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
     private List<Video> videos = new ArrayList<>();
     private AdapterVideo adapterVideo;
 
+    //Retrofit
+    private Retrofit retrofit;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +49,10 @@ public class MainActivity extends AppCompatActivity {
         //Inicializar Componentes
         recyclerVideos = findViewById(R.id.recyclerVideos);
         searchView = findViewById(R.id.searchView);
+
+        //Configurações iniciais
+        retrofit = RetrofitConfig.getRetrofit();
+
 
         //Configura Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -77,14 +94,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void recuperarVideos(){
-        Video video1 = new Video();
-        adapterVideo = new AdapterVideo(videos, this);
-        video1.setTitulo("Video 1 muito interessante");
-        videos.add(video1);
 
-        Video video2 = new Video();
-        video2.setTitulo("Video 2 muito interessante");
-        videos.add(video2);
+        YoutubeService youtubeService = retrofit.create(YoutubeService.class);
+
+        youtubeService.recuperarVideos(
+                "snippet", "date", "20",
+                YoutubeConfig.CHAVE_YOUTUBE_API, YoutubeConfig.CANAL_ID
+        ).enqueue(new Callback<Resultado>() {
+            @Override
+            public void onResponse(Call<Resultado> call, Response<Resultado> response) {
+                Log.d("resultado", "resultado: " + response.toString());
+            }
+
+            @Override
+            public void onFailure(Call<Resultado> call, Throwable t) {
+
+            }
+        });
+
     }
 
     @Override
