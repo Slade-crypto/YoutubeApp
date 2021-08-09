@@ -5,18 +5,23 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 
 import com.example.youtube.R;
 import com.example.youtube.adapter.AdapterVideo;
 import com.example.youtube.api.YoutubeService;
 import com.example.youtube.helper.RetrofitConfig;
 import com.example.youtube.helper.YoutubeConfig;
+import com.example.youtube.listener.RecyclerItemClickListener;
+import com.example.youtube.model.Item;
 import com.example.youtube.model.Resultado;
 import com.example.youtube.model.Video;
 import com.miguelcatalan.materialsearchview.MaterialSearchView;
@@ -35,7 +40,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerVideos;
     private MaterialSearchView searchView;
 
-    private List<Video> videos = new ArrayList<>();
+    private List<Item> videos = new ArrayList<>();
+    private Resultado resultado;
     private AdapterVideo adapterVideo;
 
     //Retrofit
@@ -60,11 +66,8 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setTitleTextColor(Color.WHITE);
         setSupportActionBar(toolbar);
 
-        //Configura RecyclerView
+        //recupera videos
         recuperarVideos();
-        recyclerVideos.setHasFixedSize(true);
-        recyclerVideos.setLayoutManager(new LinearLayoutManager(this));
-        recyclerVideos.setAdapter(adapterVideo);
 
         //Configura métodos para SearhView
         searchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
@@ -104,6 +107,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Resultado> call, Response<Resultado> response) {
                 Log.d("resultado", "resultado: " + response.toString());
+
+                if(response.isSuccessful()){
+                     resultado = response.body();
+                     videos = resultado.items;
+                     configurarRecyclerView();
+
+                }
             }
 
             @Override
@@ -111,6 +121,37 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+    }
+
+    public void configurarRecyclerView(){
+        adapterVideo = new AdapterVideo(videos, this);
+        recyclerVideos.setHasFixedSize(true);
+        recyclerVideos.setLayoutManager(new LinearLayoutManager(this));
+        recyclerVideos.setAdapter(adapterVideo);
+
+        //COnfigurar evento de clique
+        recyclerVideos.addOnItemTouchListener(new RecyclerItemClickListener(this, recyclerVideos, new RecyclerItemClickListener.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                Item video = videos.get(position);
+                String idVideo = video.id.videoId;
+
+                Intent i = new Intent(MainActivity.this, PlayerActivity.class);
+                i.putExtra("idVideo", idVideo);
+                startActivity(i);
+            }
+
+            @Override
+            public void onLongItemClick(View view, int position) {
+
+            }
+
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+            }
+        }));
 
     }
 
