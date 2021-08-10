@@ -67,17 +67,19 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         //recupera videos
-        recuperarVideos();
+        recuperarVideos("");
 
         //Configura métodos para SearhView
         searchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                return false;
+                recuperarVideos(query);
+                return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
+
                 return false;
             }
         });
@@ -90,19 +92,20 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSearchViewClosed() {
-
+                recuperarVideos("");
             }
         });
 
     }
 
-    private void recuperarVideos(){
+    private void recuperarVideos(String pesquisa){
 
+        String q = pesquisa.replaceAll(" ", "+");
         YoutubeService youtubeService = retrofit.create(YoutubeService.class);
 
         youtubeService.recuperarVideos(
                 "snippet", "date", "20",
-                YoutubeConfig.CHAVE_YOUTUBE_API, YoutubeConfig.CANAL_ID
+                YoutubeConfig.CHAVE_YOUTUBE_API, YoutubeConfig.CANAL_ID, q
         ).enqueue(new Callback<Resultado>() {
             @Override
             public void onResponse(Call<Resultado> call, Response<Resultado> response) {

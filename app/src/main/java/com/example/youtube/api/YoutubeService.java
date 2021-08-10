@@ -25,7 +25,8 @@ https://www.googleapis.com/youtube/v3/search?part=snippet&order=date&maxResults=
             @Query("order") String order,
             @Query("maxResults") String maxResults,
             @Query("key") String key,
-            @Query("channelId") String channelId
+            @Query("channelId") String channelId,
+            @Query("q") String q
     );
 
 }
